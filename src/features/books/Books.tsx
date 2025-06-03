@@ -2,9 +2,8 @@ import BookTable from "./BookTable.tsx";
 import type { Language } from "./booksSlice.ts";
 import {
   choosingLanguage,
-  filterLikes,
-  filterReview,
-  filterSeed,
+  filterValue,
+  setSeed,
   selectLanguage,
   selectLikes,
   selectReview,
@@ -20,6 +19,12 @@ const LANGUAGES: { value: Language; label: string }[] = [
   { value: "ja", label: "Japanese (JP)" },
 ];
 
+type FilterType = "likes" | "review";
+
+const parseInputValue = (value: string): number => {
+  return value === "" ? 0 : Number(value);
+};
+
 export default function Books() {
   const dispatch = useAppDispatch();
   const selectedLanguage = useAppSelector(selectLanguage);
@@ -27,21 +32,18 @@ export default function Books() {
   const likes = useAppSelector(selectLikes);
   const review = useAppSelector(selectReview);
 
+  const handleFilterChange = (type: FilterType) => (
+    event: ChangeEvent<HTMLInputElement>
+  ) => {
+    dispatch(filterValue({ type, value: parseInputValue(event.target.value) }));
+  };
+
   const handleSeedChange = (event: ChangeEvent<HTMLInputElement>) => {
-    const value = event.target.value === "" ? 0 : Number(event.target.value);
-    dispatch(filterSeed(value));
+    dispatch(setSeed(parseInputValue(event.target.value)));
   };
 
   const handleLanguageChange = (event: ChangeEvent<HTMLSelectElement>) => {
     dispatch(choosingLanguage(event.target.value as Language));
-  };
-
-  const handleLikesChange = (event: ChangeEvent<HTMLInputElement>) => {
-    dispatch(filterLikes(Number(event.target.value)));
-  };
-
-  const handleReviewChange = (event: ChangeEvent<HTMLInputElement>) => {
-    dispatch(filterReview(Number(event.target.value)));
   };
 
   return (
@@ -71,7 +73,7 @@ export default function Books() {
         />
         <BookInput
           value={likes}
-          onChange={handleLikesChange}
+          onChange={handleFilterChange("likes")}
           type={"range"}
           className={"form-range"}
           text={`likes ${likes.toFixed(1)}`}
@@ -79,7 +81,7 @@ export default function Books() {
         />
         <BookInput
           value={review}
-          onChange={handleReviewChange}
+          onChange={handleFilterChange("review")}
           type={"number"}
           className={"form-control"}
           text={"Review"}

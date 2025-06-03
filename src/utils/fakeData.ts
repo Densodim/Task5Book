@@ -15,49 +15,7 @@ export type Book = {
   seed: number;
 };
 
-type BookLocale = {
-  book: {
-    title: string[];
-  };
-};
-
-const bookTitlesLocale: Record<Language, BookLocale> = {
-  en: {
-    book: {
-      title: [
-        "The Silent Echo",
-        "Beyond the Horizon",
-        "Whispers of Time",
-        "Eternal Dreams",
-        "The Last Chapter",
-      ],
-    },
-  },
-  de: {
-    book: {
-      title: [
-        "Das stille Echo",
-        "Jenseits des Horizonts",
-        "Flüstern der Zeit",
-        "Ewige Träume",
-        "Das letzte Kapitel",
-      ],
-    },
-  },
-  ja: {
-    book: {
-      title: [
-        "静かな反響",
-        "地平線の向こう",
-        "時のささやき",
-        "永遠の夢",
-        "最後の章",
-      ],
-    },
-  },
-};
-
-const languageMap: Record<Language, typeof en> = {
+const languageMap = {
   en,
   de,
   ja,
@@ -65,10 +23,8 @@ const languageMap: Record<Language, typeof en> = {
 
 const getFaker = (language: Language) => {
   const baseLocale = languageMap[language];
-  const customLocale = bookTitlesLocale[language];
-
   return new Faker({
-    locale: [customLocale, baseLocale, base],
+    locale: [baseLocale, base],
   });
 };
 
@@ -84,7 +40,11 @@ export const generateBooks = (
   return Array.from({ length: count }, (_, index) => ({
     id: index + 1,
     isbn: faker.commerce.isbn(),
-    title: faker.book.title(),
+    title: faker.helpers.arrayElement([
+      faker.lorem.words({ min: 2, max: 5 }),
+      faker.lorem.words({ min: 3, max: 6 }),
+      faker.helpers.fake("{{lorem.words(2,4)}} - {{lorem.word}}"),
+    ]),
     authors: faker.person.fullName(),
     publisher: faker.company.name(),
     details: faker.lorem.paragraphs(2),

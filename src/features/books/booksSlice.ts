@@ -20,32 +20,25 @@ const initialState: BooksSliceState = {
 };
 
 type FilterFunction = (book: Book) => boolean;
+type FilterType = "likes" | "review";
 
 const createFilter = (
-  type: keyof BooksSliceState,
+  type: FilterType,
   value: number
 ): FilterFunction | null => {
-  switch (type) {
-    case "seed":
-      return value !== 0
-        ? (book) => String(book.seed).includes(String(value))
-        : null;
-    case "likes":
-      if (value === 0) return null;
-      return (book) => book.likes > 0 && Math.random() < value / 10;
-    case "review":
-      if (value === 0) return null;
-      return (book) => book.review > 0 && Math.random() < value;
-    default:
-      return null;
-  }
+  if (value === 0) return null;
+
+  const filters: Record<FilterType, FilterFunction> = {
+    likes: (book) => book.likes > 0 && Math.random() < value / 10,
+    review: (book) => book.review > 0 && Math.random() < value,
+  };
+
+  return filters[type];
 };
 
 const createFilters = (filters: Partial<BooksSliceState>): FilterFunction[] => {
   return Object.entries(filters)
-    .map(([key, value]) =>
-      createFilter(key as keyof BooksSliceState, value as number)
-    )
+    .map(([key, value]) => createFilter(key as FilterType, value as number))
     .filter((filter): filter is FilterFunction => filter !== null);
 };
 
@@ -61,10 +54,13 @@ const applyFilters = (
 
 const applyFiltersToState = (state: BooksSliceState) => {
   state.books = applyFilters(state.allBooks, {
-    seed: state.seed,
     likes: state.likes,
     review: state.review,
   });
+};
+
+const calculatePageSeed = (userSeed: number, page: number): number => {
+  return userSeed + page;
 };
 
 export const booksSlice = createAppSlice({
@@ -75,7 +71,8 @@ export const booksSlice = createAppSlice({
       if (!state.isLoading && state.hasMore) {
         state.isLoading = true;
         state.page += BOOKS_PER_PAGE;
-        const newBooks = generateBooks(state.page, state.language);
+        const pageSeed = calculatePageSeed(state.seed, state.page);
+        const newBooks = generateBooks(state.page, state.language, pageSeed);
         state.allBooks = newBooks;
         applyFiltersToState(state);
         state.hasMore = state.books.length < MAX_BOOKS;
@@ -86,7 +83,8 @@ export const booksSlice = createAppSlice({
       state.page = BOOKS_PER_PAGE;
       state.isLoading = false;
       state.hasMore = true;
-      const books = generateBooks(state.page, state.language);
+      const pageSeed = calculatePageSeed(state.seed, state.page);
+      const books = generateBooks(state.page, state.language, pageSeed);
       state.allBooks = books;
       state.books = books;
     }),
@@ -96,25 +94,34 @@ export const booksSlice = createAppSlice({
         state.page = BOOKS_PER_PAGE;
         state.isLoading = false;
         state.hasMore = true;
-        const books = generateBooks(state.page, action.payload);
+        const pageSeed = calculatePageSeed(state.seed, state.page);
+        const books = generateBooks(state.page, action.payload, pageSeed);
         state.allBooks = books;
-        state.books = applyFilters(books, { seed: state.seed });
-        state.seed = 0;
+        state.books = applyFilters(books, {
+          likes: state.likes,
+          review: state.review,
+        });
         state.likes = 0;
         state.review = 0;
       }
     ),
-    filterSeed: create.reducer((state, action: PayloadAction<number>) => {
+    filterValue: create.reducer(
+      (state, action: PayloadAction<{ type: FilterType; value: number }>) => {
+        const { type, value } = action.payload;
+        state[type] = value;
+        applyFiltersToState(state);
+      }
+    ),
+    setSeed: create.reducer((state, action: PayloadAction<number>) => {
       state.seed = action.payload;
-      applyFiltersToState(state);
-    }),
-    filterLikes: create.reducer((state, action: PayloadAction<number>) => {
-      state.likes = Number(action.payload);
-      applyFiltersToState(state);
-    }),
-    filterReview: create.reducer((state, action: PayloadAction<number>) => {
-      state.review = action.payload;
-      applyFiltersToState(state);
+      state.page = BOOKS_PER_PAGE;
+      const pageSeed = calculatePageSeed(state.seed, state.page);
+      const books = generateBooks(state.page, state.language, pageSeed);
+      state.allBooks = books;
+      state.books = applyFilters(books, {
+        likes: state.likes,
+        review: state.review,
+      });
     }),
   }),
   selectors: {
@@ -145,9 +152,8 @@ export const {
 export const {
   choosingLanguage,
   initialBooks,
-  filterSeed,
-  filterLikes,
-  filterReview,
+  filterValue,
+  setSeed,
   pageView,
 } = booksSlice.actions;
 

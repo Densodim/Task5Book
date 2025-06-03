@@ -10,6 +10,7 @@ import {
 import { useAppDispatch, useAppSelector } from "../../app/hooks.ts";
 import ExpandedBook from "./ExpandedBook.tsx";
 import InfiniteScroll from "react-infinite-scroll-component";
+import React from "react";
 
 const TITLE = ["#", "ISBN", "Title", "Author(s)", "Publisher"];
 
@@ -22,7 +23,6 @@ export default function BookTable({ language }: BookTableProps) {
 
   useEffect(() => {
     dispatch(initialBooks());
-    dispatch(pageView());
   }, [language, dispatch]);
 
   const handleRowClick = (bookId: number) => {
@@ -51,9 +51,8 @@ export default function BookTable({ language }: BookTableProps) {
         </thead>
         <tbody>
           {books.map((book) => (
-            <>
+            <React.Fragment key={book.id}>
               <tr
-                key={book.id}
                 onClick={() => {
                   handleRowClick(book.id);
                 }}
@@ -67,7 +66,7 @@ export default function BookTable({ language }: BookTableProps) {
                 <td>{book.publisher}</td>
               </tr>
               {expandedBookId === book.id && <ExpandedBook book={book} />}
-            </>
+            </React.Fragment>
           ))}
         </tbody>
       </table>
