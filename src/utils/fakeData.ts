@@ -15,7 +15,13 @@ export type Book = {
   seed: number;
 };
 
-const bookTitlesLocale = {
+type BookLocale = {
+  book: {
+    title: string[];
+  };
+};
+
+const bookTitlesLocale: Record<Language, BookLocale> = {
   en: {
     book: {
       title: [
@@ -51,7 +57,7 @@ const bookTitlesLocale = {
   },
 };
 
-const languageMap = {
+const languageMap: Record<Language, typeof en> = {
   en,
   de,
   ja,
@@ -66,11 +72,17 @@ const getFaker = (language: Language) => {
   });
 };
 
-export const generateBooks = (count: number, language: Language): Book[] => {
+export const generateBooks = (
+  count: number,
+  language: Language,
+  seedValue?: number
+): Book[] => {
   const faker = getFaker(language);
+  const seed = seedValue ?? Math.floor(Math.random() * 10000);
+  faker.seed(seed);
 
-  return Array.from({ length: count }, () => ({
-    id: Number(faker.string.numeric(2)),
+  return Array.from({ length: count }, (_, index) => ({
+    id: index + 1,
     isbn: faker.commerce.isbn(),
     title: faker.book.title(),
     authors: faker.person.fullName(),
@@ -80,6 +92,6 @@ export const generateBooks = (count: number, language: Language): Book[] => {
     language: language,
     review: Number(faker.number.float({ min: 0, max: 5, fractionDigits: 1 })),
     likes: faker.number.int({ max: 10 }),
-    seed: faker.seed(Math.floor(Math.random() * 10000)),
+    seed,
   }));
 };

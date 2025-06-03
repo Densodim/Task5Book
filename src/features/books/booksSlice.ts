@@ -31,9 +31,11 @@ const createFilter = (
         ? (book) => String(book.seed).includes(String(value))
         : null;
     case "likes":
-      return value !== 0 ? (book) => Math.abs(book.likes - value) < 0.1 : null;
+      if (value === 0) return null;
+      return (book) => book.likes > 0 && Math.random() < value / 10;
     case "review":
-      return value !== 0 ? (book) => book.review >= value : null;
+      if (value === 0) return null;
+      return (book) => book.review > 0 && Math.random() < value;
     default:
       return null;
   }
