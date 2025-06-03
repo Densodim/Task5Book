@@ -10,13 +10,17 @@
   min-width: 50%;
 }
 
+@media (max-width: 575px) {
+  #root {
+    padding: 0px;
+  }
+}
 
 @media (prefers-reduced-motion: no-preference) {
   .App-logo {
     animation: App-logo-float infinite 3s ease-in-out;
   }
 }
-
 
 @keyframes App-logo-float {
   0% {

@@ -41,35 +41,37 @@ export default function BookTable({ language }: BookTableProps) {
       dataLength={books.length}
       scrollThreshold="100%"
     >
-      <table className="table table-hover">
-        <thead>
-          <tr>
-            {TITLE.map((el, index) => (
-              <th key={index}>{el}</th>
+      <div className="table-responsive">
+        <table className="table table-hover">
+          <thead>
+            <tr>
+              {TITLE.map((el, index) => (
+                <th key={index}>{el}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {books.map((book) => (
+              <React.Fragment key={book.id}>
+                <tr
+                  onClick={() => {
+                    handleRowClick(book.id);
+                  }}
+                  className={expandedBookId === book.id ? "table-active" : ""}
+                  style={{ cursor: "pointer" }}
+                >
+                  <td>{book.id}</td>
+                  <td>{book.isbn}</td>
+                  <td>{book.title}</td>
+                  <td>{book.authors}</td>
+                  <td>{book.publisher}</td>
+                </tr>
+                {expandedBookId === book.id && <ExpandedBook book={book} />}
+              </React.Fragment>
             ))}
-          </tr>
-        </thead>
-        <tbody>
-          {books.map((book) => (
-            <React.Fragment key={book.id}>
-              <tr
-                onClick={() => {
-                  handleRowClick(book.id);
-                }}
-                className={expandedBookId === book.id ? "table-active" : ""}
-                style={{ cursor: "pointer" }}
-              >
-                <td>{book.id}</td>
-                <td>{book.isbn}</td>
-                <td>{book.title}</td>
-                <td>{book.authors}</td>
-                <td>{book.publisher}</td>
-              </tr>
-              {expandedBookId === book.id && <ExpandedBook book={book} />}
-            </React.Fragment>
-          ))}
-        </tbody>
-      </table>
+          </tbody>
+        </table>
+      </div>
     </InfiniteScroll>
   );
 }

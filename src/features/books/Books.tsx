@@ -47,7 +47,7 @@ export default function Books() {
   };
 
   return (
-    <div className="container">
+    <div className="container-fluid">
       <div className="row mb-4 align-items-center">
         <div className="col">
           <label htmlFor="selectedLanguage">Language</label>
@@ -89,8 +89,8 @@ export default function Books() {
         />
       </div>
 
-      <div className="row mb-4">
-        <div className="col-12">
+      <div className="row mb-4 gx-0">
+        <div className="col-12 px-0">
           <h3>Book Table</h3>
           <BookTable language={selectedLanguage} />
         </div>
